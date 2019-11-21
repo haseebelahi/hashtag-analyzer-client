@@ -1,0 +1,65 @@
+.mt-16 {
+    margin-top: 16px;
+}
+.mb-8 {
+    margin-bottom: 8px;
+}
+.p-8 {
+    padding: 8px;
+}
+.y-scrollable{
+    overflow-y: scroll;
+}
+.h-530 {
+    height: 530px;
+}
+.mh-530 {
+    max-height: 530px;
+}
+.h-430 {
+    height: 430px;
+}
+.mh-430 {
+    max-height: 430px;
+}
+.mh-400 {
+    max-height: 400px;
+}
+.mh-100-p {
+    max-height: 100%;
+}
+.tweet-content p {
+    font-size: 14px;
+    line-height: 20px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.Emoji--forText {
+    height: 1.25em;
+    width: 1.25em;
+    padding: 0 .02em 0 .02em;
+    vertical-align: -0.2em;
+}
+ol, ul {
+    padding-inline-start: 15px;
+}
+
+.fa {
+    cursor: pointer;
+}
+.tweet-card {
+    padding: 0.5rem 0.75rem 0.5rem 0.75rem;
+}
+p {
+    margin-bottom: 4px;
+}
+.stats-bar {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-content: space-between;
+}
+.flex-100 {
+    flex: 1 1 100%;
+}
