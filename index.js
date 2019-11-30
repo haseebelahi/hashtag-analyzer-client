@@ -103,47 +103,10 @@
         new Chart(ctx1, config);
     };
     
-    const drawTweetsPerHourGraph = (tweetsByTime) => {
-        let labels = [];
-        let data = [];
-        let highestLikesData = [];
-        parseTime(tweetsByTime);
-        tweetsByTime.sort((a, b) => a.time - b.time);
-        setFirstTweetTime(tweetsByTime[0].time);
-        let hash = {};
-        tweetsByTime.forEach(tweet => {
-            let tweetTime = moment(tweet.time);
-            let key = tweetTime.format('D-M-YY hA') + ' - ' + tweetTime.add(1, 'h').format('hA');
-            console.log('hour: ' + key);
-            if(!hash[key]) {
-                hash[key] = {x: key, y: 0}
-                
-            }
-            hash[key].y += 1;
-        });
-        for (let prop in hash) {
-            labels.push(prop);
-            data.push(hash[prop].y);
-        }
-        tweetsByTime.sort((a, b) => b.likes - a.likes).splice(0, 1).forEach(tweet => {
-            let tweetTime = moment(tweet.time);
-            const hour = tweetTime.format('D-M-YY hA') + ' - ' + tweetTime.add(1, 'h').format('hA');
-            labels.forEach(label => {
-                if(label == hour) {
-                    highestLikesData.push({
-                        x: hour,
-                        y: hash[hour].y,
-                        r: 8,
-                        likes: tweet.likes,
-                        time: tweet.time.format('h:mA'),
-                        username: tweet.username
-                    });
-                } else {
-                    highestLikesData.push({});
-                }
-            });
-        });
-        
+    const drawTweetsPerHourGraph = (tweetsPerHourGraphData) => {
+        const labels = tweetsPerHourGraphData['labels'];
+        const data = tweetsPerHourGraphData['data'];
+        const highestLikesData = tweetsPerHourGraphData['highestLikesData'];
         const colorPair = getColorPair();
         let config = {
             type: 'line',
@@ -221,7 +184,7 @@
         ctx.style['height'] = `${ctxHeight}px`;
         
         WordCloud(ctx, {
-            list: wordFrequency['word_frequency_list'].slice(1),
+            list: wordFrequency.slice(1),
             color: function() {
                 return randomColor();
             },
@@ -236,16 +199,16 @@
         ctxAdjacent.style['height'] = `${ctxParent.offsetHeight}px`;
         ctxAdjacent.style['max-height'] = `${ctxParent.offsetHeight}px`;
     };
-
-    const showTopNTweets = (tweets, by, sort = 'desc') => {
+    
+    const showTopNTweets = (tweets, by) => {
         const topNContainer = document.getElementById(`topby${by}`);
         const topNTitle = document.getElementById(`topby${by}title`);
         topNTitle.innerText = topNTitle.innerText.replace('#', TOP_N);
         let innerHTML = ''
-        parseTime(tweets);
-        tweets.sort((a, b) => sort == 'desc' ? (b[by] - a[by]) : (a[by] - b[by])).slice(0, TOP_N).forEach(tweet => {
-            const regEx = new RegExp('href="/', "g");
-            tweet.text_html = tweet.text_html.replace(regEx, 'href="https://twitter.com/')
+        if (by == 'time') {
+            setFirstTweetTime(tweets[0].time);
+        }
+        tweets.forEach(tweet => {
             innerHTML += `
             <div class='card tweet-content mb-8'>
                 <div class='card-body tweet-card'>
@@ -253,8 +216,8 @@
                         <a href='https://twitter.com/${tweet.screen_name}' target = '_blank'>@${tweet.username}</a>
                     </div>
                     <div class='card-text'>
-                        ${tweet.text_html}
-                        <p><i class='fa fa-clock-o'></i><a href='https://twitter.com/${tweet.tweet_url}' target='_blank'> ${moment(tweet.timestamp+'Z').format('LLLL')}</a></p>
+                        ${tweet.html}
+                        <p><i class='fa fa-clock-o'></i><a href='https://twitter.com/${tweet.url}' target='_blank'> ${tweet.time}</a></p>
                         <p><i class='fa fa-heart'></i> ${tweet.likes}&nbsp;&nbsp <i class='fa fa-retweet'></i> ${tweet.retweets} &nbsp;&nbsp <i class='fa fa-comment'></i> ${tweet.replies}</p>
                     </div>
                 </div> 
@@ -264,24 +227,12 @@
         topNContainer.innerHTML = innerHTML;
     };
 
-    const hashtagStarters = (tweets) => {
-        parseTime(tweets);
-        const uniqueUsers = tweets.sort((a, b) => a.time - b.time).reduce((unique, item) => {
-            // console.log(item, unique, unique.some(x => x.username == item.username), unique.some(x => x.username == item.username) ? unique : [...unique, item]);
-            return unique.some(x => x.username == item.username) ? unique : [...unique, item];
-        }, []).map(item => {
-            return {
-                username: item.username,
-                screen_name: item.screen_name,
-                tweet_time: item.time
-            };
-        });
-        setTotalTweeters(uniqueUsers.length);
+    const hashtagStarters = (hashtagStarters) => {
         let innerHTML = '<ul>';
-        uniqueUsers.slice(0, TOP_N).forEach(user => {
+        hashtagStarters.forEach(user => {
             innerHTML += `
             <li>
-                <a href='https://twitter.com/${user.screen_name}' target = '_blank'>@${user.username}</a> at ${user.tweet_time.format('LLLL')}
+                <a href='https://twitter.com/${user.screen_name}' target = '_blank'>@${user.username}</a> at ${user.tweet_time}
             </li>
             `;
         });
@@ -289,22 +240,26 @@
         document.getElementById('hashtagStartersTitle').innerText = document.getElementById('hashtagStartersTitle').innerText.replace('#', TOP_N);
     };
 
-    const setTotalTweets = (tweets) => {
-        document.getElementById('totalTweets').innerText = tweets.length;
+    const setTotalTweets = (totalTweets) => {
+        document.getElementById('totalTweets').innerText = totalTweets;
     };
 
     const setFirstTweetTime = (time) => {
-        document.getElementById('firstTweetTime').innerText = time.format('LLLL');
+        document.getElementById('firstTweetTime').innerText = time;
     };
 
     const setTotalTweeters = (totalTweeters) => {
         document.getElementById('totalTweeters').innerText = totalTweeters;
     };
 
+    const setTweetsInFirst5Min = (tweetCountInFirst5Min) => {
+        document.getElementById('tweetCountFirst5Min').innerText = tweetCountInFirst5Min;
+    }
+
     const showCommonLinks = (commonLinks) => {
         const commonLinksContainer = document.getElementById('common_links');
         let innerHTML = `<ol>`;
-        for(let link in commonLinks['links']) {
+        for(let link in commonLinks) {
             innerHTML += `
             <li>
                 <p><a href='${link}' target='_blank'>${link}</a><p>
@@ -323,24 +278,22 @@
      * */ 
     
 
-    fetch('api/tweets_by_time.json', {mode: 'no-cors'})
+    fetch('http://localhost:5000/api/allstats')
         .then(response => response.json())
         .then(json => {
-            drawTweetsPerHourGraph(json.slice());
-            showTopNTweets(json.slice(), 'likes');
-            showTopNTweets(json.slice(), 'retweets');
-            showTopNTweets(json.slice(), 'time', 'asc');
-            hashtagStarters(json.slice());
-            setTotalTweets(json.slice());
+            drawTweetsPerHourGraph(json['tweetsPerHour']);
+            showTopNTweets(json['topN']['likes'], 'likes');
+            showTopNTweets(json['topN']['retweets'], 'retweets');
+            showTopNTweets(json['topN']['time'], 'time');
+            hashtagStarters(json['hashtagStarters']);
+            setTotalTweets(json['totalTweets']);
+            setTotalTweeters(json['totalUsersTweeting']);
+            setTweetsInFirst5Min(json['tweetCountInFirst5']);
+            buildWordCloud(json['wordFreq']);
+            showCommonLinks(json['commonLinks']);
         });
     fetch('api/top_10_tweeters.json', {mode: 'no-cors'})
         .then(response => response.json())
         .then(json => drawTweetsPerUserGraph(json));
-    fetch('api/word_frequency.json', {mode: 'no-cors'})
-        .then(response => response.json())
-        .then(json => buildWordCloud(json));
-    fetch('api/common_links.json', {mode: 'no-cors'})
-        .then(response => response.json())
-        .then(json => showCommonLinks(json));
     
 })();
