@@ -1,147 +1,77 @@
 'use strict';
 
-window.chartColors = {
-	red: 'rgb(255, 99, 132)',
-	orange: 'rgb(255, 159, 64)',
-	yellow: 'rgb(255, 205, 86)',
-	green: 'rgb(75, 192, 192)',
-	blue: 'rgb(54, 162, 235)',
-	purple: 'rgb(153, 102, 255)',
-	grey: 'rgb(201, 203, 207)'
-};
+((global) => {
 
-(function(global) {
-	var MONTHS = [
-		'January',
-		'February',
-		'March',
-		'April',
-		'May',
-		'June',
-		'July',
-		'August',
-		'September',
-		'October',
-		'November',
-		'December'
-	];
+	const colors = ['rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)', 'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)', 'rgb(235, 98, 134)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)', 'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)'];
 
-	var COLORS = [
-		'#4dc9f6',
-		'#f67019',
-		'#f53794',
-		'#537bc4',
-		'#acc236',
-		'#166a8f',
-		'#00a950',
-		'#58595b',
-		'#8549ba'
-	];
+    const colorsLight = ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'];
 
-	var Samples = global.Samples || (global.Samples = {});
-	var Color = global.Color;
-
-	Samples.utils = {
-		// Adapted from http://indiegamr.com/generate-repeatable-random-numbers-in-js/
-		srand: function(seed) {
-			this._seed = seed;
-		},
-
-		rand: function(min, max) {
-			var seed = this._seed;
-			min = min === undefined ? 0 : min;
-			max = max === undefined ? 1 : max;
-			this._seed = (seed * 9301 + 49297) % 233280;
-			return min + (this._seed / 233280) * (max - min);
-		},
-
-		numbers: function(config) {
-			var cfg = config || {};
-			var min = cfg.min || 0;
-			var max = cfg.max || 1;
-			var from = cfg.from || [];
-			var count = cfg.count || 8;
-			var decimals = cfg.decimals || 8;
-			var continuity = cfg.continuity || 1;
-			var dfactor = Math.pow(10, decimals) || 0;
-			var data = [];
-			var i, value;
-
-			for (i = 0; i < count; ++i) {
-				value = (from[i] || 0) + this.rand(min, max);
-				if (this.rand() <= continuity) {
-					data.push(Math.round(dfactor * value) / dfactor);
-				} else {
-					data.push(null);
-				}
-			}
-
-			return data;
-		},
-
-		labels: function(config) {
-			var cfg = config || {};
-			var min = cfg.min || 0;
-			var max = cfg.max || 100;
-			var count = cfg.count || 8;
-			var step = (max - min) / count;
-			var decimals = cfg.decimals || 8;
-			var dfactor = Math.pow(10, decimals) || 0;
-			var prefix = cfg.prefix || '';
-			var values = [];
-			var i;
-
-			for (i = min; i < max; i += step) {
-				values.push(prefix + Math.round(dfactor * i) / dfactor);
-			}
-
-			return values;
-		},
-
-		months: function(config) {
-			var cfg = config || {};
-			var count = cfg.count || 12;
-			var section = cfg.section;
-			var values = [];
-			var i, value;
-
-			for (i = 0; i < count; ++i) {
-				value = MONTHS[Math.ceil(i) % 12];
-				values.push(value.substring(0, section));
-			}
-
-			return values;
-		},
-
-		color: function(index) {
-			return COLORS[index % COLORS.length];
-		},
-
-		transparentize: function(color, opacity) {
-			var alpha = opacity === undefined ? 0.5 : 1 - opacity;
-			return Color(color).alpha(alpha).rgbString();
+	class Utils {
+		
+		constructor() {}
+		random_rgb() {
+			var o = Math.round, r = Math.random, s = 255;
+			// return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ')';
+			return [o(r()*s), o(r()*s), o(r()*s)];
 		}
-	};
+		randomColor() {
+			const whiteRGB = [255, 255, 255];
+			let randomRGB = this.random_rgb();
+			while(this.contrast(whiteRGB, randomRGB) < 3) {
+				randomRGB = this.random_rgb();
+			}
+			return `rgba(${randomRGB[0]}, ${randomRGB[1]}, ${randomRGB[2]}, 0.8)`;
+		}
 
-	// DEPRECATED
-	window.randomScalingFactor = function() {
-		return Math.round(Samples.utils.rand(-100, 100));
-	};
+		luminanace(r, g, b) {
+			const a = [r, g, b].map(function (v) {
+				v /= 255;
+				return v <= 0.03928
+					? v / 12.92
+					: Math.pow( (v + 0.055) / 1.055, 2.4 );
+			});
+			return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+		}
+		contrast(rgb1, rgb2) {
+			const luminanace1 = this.luminanace(rgb1[0], rgb1[1], rgb1[2]) + 0.05;
+			const luminanace2 = this.luminanace(rgb2[0], rgb2[1], rgb2[2]) + 0.05;
+			return luminanace1 > luminanace2 ? luminanace1/luminanace2 : luminanace2/luminanace1;
+		}
 
-	// INITIALIZATION
+		getColorPair() {
+			// let constrastRatio = 0;
+			// let color1 = [];
+			// let color2 = [];
+			// while(constrastRatio < 3.5) {
+			// 	color1 = this.random_rgb();
+			// 	color2 = this.random_rgb();
+			// 	constrastRatio = this.contrast(color1, color2);
+			// }
+			// return [`rgba(${color1[0]}, ${color1[1]}, ${color1[2]}, 0.9)`, `rgb(${color2[0]}, ${color2[1]}, ${color2[2]}, 0.9)`];
+			return [colors[5], colors[3]];
+		}
 
-	Samples.utils.srand(Date.now());
+		getColors(size) {
+			const newColors = [];
+			for (let i = 0; i < size; i++){
+				newColors.push(this.randomColor());
+			}
+			return newColors;
+		}
+		
+		numberWithCommas(x) {
+			return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		}
 
-	// Google Analytics
-	/* eslint-disable */
-	if (document.location.hostname.match(/^(www\.)?chartjs\.org$/)) {
-		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-		ga('create', 'UA-28909194-3', 'auto');
-		ga('send', 'pageview');
 	}
-	/* eslint-enable */
-
-}(this));
+	// Expose the library as an AMD module
+	if (typeof define === 'function' && define.amd) {
+		global.Utils = Utils;
+		define('utils', [], function() { return Utils; });
+	} else if (typeof module !== 'undefined' && module.exports) {
+		module.exports = Utils;
+	} else {
+		global.Utils = Utils;
+	}
+	  
+})(this);

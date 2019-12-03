@@ -1,79 +1,20 @@
 'use strict';
 
 (() => {
-    function random_rgb() {
-        var o = Math.round, r = Math.random, s = 255;
-        // return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ')';
-        return [o(r()*s), o(r()*s), o(r()*s)];
-    }
-
-    function randomColor(){
-        const whiteRGB = [255, 255, 255];
-        let randomRGB = random_rgb();
-        while(contrast(whiteRGB, randomRGB) < 3) {
-            randomRGB = random_rgb();
-        }
-        return `rgba(${randomRGB[0]}, ${randomRGB[1]}, ${randomRGB[2]}, 0.8)`
-    }
-
-    function luminanace(r, g, b) {
-        var a = [r, g, b].map(function (v) {
-            v /= 255;
-            return v <= 0.03928
-                ? v / 12.92
-                : Math.pow( (v + 0.055) / 1.055, 2.4 );
-        });
-        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
-    }
-
-    function contrast(rgb1, rgb2) {
-        const luminanace1 = luminanace(rgb1[0], rgb1[1], rgb1[2]) + 0.05;
-        const luminanace2 = luminanace(rgb2[0], rgb2[1], rgb2[2]) + 0.05;
-        return luminanace1 > luminanace2 ? luminanace1/luminanace2 : luminanace2/luminanace1;
-    }
-
-    const getColorPair = () => {
-        let constrastRatio = 0;
-        let color1 = [];
-        let color2 = [];
-        while(constrastRatio < 3.5) {
-            color1 = random_rgb();
-            color2 = random_rgb();
-            constrastRatio = contrast(color1, color2);
-        }
-        return [`rgba(${color1[0]}, ${color1[1]}, ${color1[2]}, 0.9)`, `rgb(${color2[0]}, ${color2[1]}, ${color2[2]}, 0.9)`];
-    };
-
     
-    const colors = ['rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)', 'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)', 'rgb(235, 98, 134)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)', 'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)'];
-
-    const colorsLight = ['rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)', 'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)'];
-
-    const TOP_N = 15;
-    const getColors = (size) => {
-        // const newColors = colors.slice();
-        // if(size > colors.length) {
-        //     for (let i = 0; i <= size - colors.length; i++) {
-        //         newColors.push(colors[i%colors.length]);
-        //     }
-        // }
-        const newColors = [];
-        for (let i = 0; i < size; i++){
-            newColors.push(randomColor());
-        }
-        return newColors;
-    }
+    let tweetsPerHourGraph = null;
+    let usersWithMostTweetsGraph = null;
+    const TOP_N = 20;
+    var maxFrequency = 0;
+    var minFrequency = 0;
 
     const drawTweetsPerUserGraph = (tweetsPerUser) => {
         let labels = [];
         let data = [];
-        tweetsPerUser.sort((a, b) => {
-            return a.num_of_tweets - b.num_of_tweets;
-        });
-        labels = tweetsPerUser.map(item => item.screen_name);
+        labels = tweetsPerUser.map(item => `@${item.screen_name}`);
         data = tweetsPerUser.map(item => item.num_of_tweets);
-        
-        const colors = getColors(data.length);
+        const utils = new Utils();
+        const colors = utils.getColors(data.length);
         const config = {
             type: 'bar',
             data: {
@@ -96,18 +37,26 @@
                 title: {
                     display: 'true',
                     text: 'Top 10 Tweeters'
-                }
+                },
+                onClick: clickEventHandler,
+                onHover: hoverEventHandler
             }
         };
         const ctx1 = document.getElementById('myChart1').getContext('2d');
-        new Chart(ctx1, config);
+        if (usersWithMostTweetsGraph) {
+            usersWithMostTweetsGraph.destroy();
+        }
+        usersWithMostTweetsGraph = new Chart(ctx1, config);
     };
     
     const drawTweetsPerHourGraph = (tweetsPerHourGraphData) => {
         const labels = tweetsPerHourGraphData['labels'];
         const data = tweetsPerHourGraphData['data'];
         const highestLikesData = tweetsPerHourGraphData['highestLikesData'];
-        const colorPair = getColorPair();
+        const highestRetweetsData = tweetsPerHourGraphData['highestRetweetsData'];
+        const mostTweetsInAMinData = tweetsPerHourGraphData['mostTweetsInAMinData'];
+        const utils = new Utils();
+        const colorPair = utils.getColorPair();
         let config = {
             type: 'line',
             data: {
@@ -122,13 +71,29 @@
                         data: data,
                     },
                     {
-                        label: 'Most liked Tweet',
+                        label: 'Most retweeted Tweet',
                         type: 'bubble',
-                        data: highestLikesData,
+                        data: highestRetweetsData,
                         backgroundColor: colorPair[1],
                         hoverBackgroundColor: colorPair[1],
                         pointStyle: 'circle'
-                    }
+                    },
+                    // {
+                    //     label: 'Most liked Tweet',
+                    //     type: 'bubble',
+                    //     data: highestLikesData,
+                    //     backgroundColor: colorPair[1],
+                    //     hoverBackgroundColor: colorPair[1],
+                    //     pointStyle: 'circle'
+                    // },
+                    // {
+                    //     label: 'Most tweets in a minute',
+                    //     type: 'bubble',
+                    //     data: mostTweetsInAMinData,
+                    //     backgroundColor: colorPair1[1],
+                    //     hoverBackgroundColor: colorPair1[1],
+                    //     pointStyle: 'circle'
+                    // }
                 ],
             },
             options: {
@@ -143,8 +108,12 @@
                             let tt = ''
                             if(tooltipItem.datasetIndex == 0) {
                                 tt = `Total Tweets: ${tooltipItem.yLabel}`;
-                            } else {
+                            } else if(tooltipItem.datasetIndex == 1){
+                                tt = `Tweet with most retweets (${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].retweets}) @ ${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].time} from ${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].username}`;
+                            } else if(tooltipItem.datasetIndex == 2){
                                 tt = `Tweet with most likes (${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].likes}) @ ${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].time} from ${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].username}`;
+                            } else {
+                                tt = `Most tweets in a minute (${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].tweets}) @ ${data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].time}`;
                             }
                             return tt;
                         }
@@ -169,7 +138,10 @@
             }
         };
         var ctx = document.getElementById('myChart').getContext('2d');
-        new Chart(ctx, config);
+        if(tweetsPerHourGraph) {
+            tweetsPerHourGraph.destroy();
+        }
+        tweetsPerHourGraph = new Chart(ctx, config);
     };
 
     const buildWordCloud  = (wordFrequency) => {
@@ -182,11 +154,22 @@
         ctx.setAttribute('height', ctxHeight);
         ctx.style['width'] = `${ctxWidth}px`;
         ctx.style['height'] = `${ctxHeight}px`;
+
+        wordFrequency = wordFrequency.slice(1);
+        maxFrequency = wordFrequency[0][1];
+        minFrequency = wordFrequency[wordFrequency.length - 1][1];
         
+        const utils = new Utils();
+
+        const heighestCount = wordFrequency.slice(1)[0][1];
+        let weightFactor = 0.4;
+        if (heighestCount > 450) {
+            weightFactor = 0.5 / (heighestCount / 450);
+        }
         WordCloud(ctx, {
-            list: wordFrequency.slice(1),
+            list: wordFrequency,
             color: function() {
-                return randomColor();
+                return utils.randomColor();
             },
             click: (item) => {
                 const freqInfo = document.getElementById('word_freq_info');
@@ -194,7 +177,19 @@
             },
             drawOutOfBound: true,
             shrinkToFit: false,
-            weightFactor: 0.27
+            weightFactor: function (size) {
+                // const transformed = (size * 0.5) * ctx.offsetWidth / 1024;
+                // console.log(size + ', ' + transformed);
+                // console.log(test);
+                // return transformed;
+                if(maxFrequency > 145) {
+                    const transformed = (((size - minFrequency) * 1.0)/(maxFrequency - minFrequency)) * (160 - 0) + 0;
+                    return transformed;
+                }
+                return size;
+                
+            },
+            rotationSteps: 2
         });
         ctxAdjacent.style['height'] = `${ctxParent.offsetHeight}px`;
         ctxAdjacent.style['max-height'] = `${ctxParent.offsetHeight}px`;
@@ -213,11 +208,14 @@
             <div class='card tweet-content mb-8'>
                 <div class='card-body tweet-card'>
                     <div class='card-title'>
-                        <a href='https://twitter.com/${tweet.screen_name}' target = '_blank'>@${tweet.username}</a>
+                        <a title='${tweet.username}' href='https://twitter.com/${tweet.screen_name}' target = '_blank'>
+                        <img class='avatar-img' src='${tweet.avatar_img}' alt='profile avatar'>
+                        @${tweet.username}
+                        </a>
                     </div>
                     <div class='card-text'>
                         ${tweet.html}
-                        <p><i class='fa fa-clock-o'></i><a href='https://twitter.com/${tweet.url}' target='_blank'> ${tweet.time}</a></p>
+                        <p><i class='fa fa-clock-o'></i><a title='See tweet on Twitter' href='https://twitter.com/${tweet.url}' target='_blank'> ${tweet.time}</a></p>
                         <p><i class='fa fa-heart'></i> ${tweet.likes}&nbsp;&nbsp <i class='fa fa-retweet'></i> ${tweet.retweets} &nbsp;&nbsp <i class='fa fa-comment'></i> ${tweet.replies}</p>
                     </div>
                 </div> 
@@ -228,11 +226,14 @@
     };
 
     const hashtagStarters = (hashtagStarters) => {
-        let innerHTML = '<ul>';
+        let innerHTML = '<ul class="hashtag-starters">';
         hashtagStarters.forEach(user => {
             innerHTML += `
             <li>
-                <a href='https://twitter.com/${user.screen_name}' target = '_blank'>@${user.username}</a> at ${user.tweet_time}
+                <a title='${user.screen_name}' href='https://twitter.com/${user.screen_name}' target = '_blank'>
+                    <img class='avatar-img' src='${user.avatar_img}' alt='profile avatar'>
+                    @${user.username}
+                </a> at ${user.tweet_time}
             </li>
             `;
         });
@@ -241,7 +242,7 @@
     };
 
     const setTotalTweets = (totalTweets) => {
-        document.getElementById('totalTweets').innerText = totalTweets;
+        document.getElementById('totalTweets').innerText = new Utils().numberWithCommas(totalTweets);
     };
 
     const setFirstTweetTime = (time) => {
@@ -249,12 +250,20 @@
     };
 
     const setTotalTweeters = (totalTweeters) => {
-        document.getElementById('totalTweeters').innerText = totalTweeters;
+        document.getElementById('totalTweeters').innerText = new Utils().numberWithCommas(totalTweeters);
     };
 
-    const setTweetsInFirst5Min = (tweetCountInFirst5Min) => {
-        document.getElementById('tweetCountFirst5Min').innerText = tweetCountInFirst5Min;
-    }
+    const setMostTweetsInAMin = (mostTweetsInAMin) => {
+        document.getElementById('mostTweetsInAMin').innerText = `${mostTweetsInAMin[0].num_of_tweets} @ ${mostTweetsInAMin[0].time}`;
+    };
+
+    const setTotalRetweets = (totalRetweets) => {
+        document.getElementById('totalRetweets').innerText = new Utils().numberWithCommas(totalRetweets);
+    };
+
+    const setTotalLikes = (totalLikes) => {
+        document.getElementById('totalLikes').innerText = new Utils().numberWithCommas(totalLikes);
+    };
 
     const showCommonLinks = (commonLinks) => {
         const commonLinksContainer = document.getElementById('common_links');
@@ -262,25 +271,44 @@
         for(let link in commonLinks) {
             innerHTML += `
             <li>
-                <p><a href='${link}' target='_blank'>${link}</a><p>
+                <p class='text-elipsis'><a href='${link}' target='_blank'>${link}</a><p>
             </li>
             `;
         }
         innerHTML += `</ol>`;
         commonLinksContainer.innerHTML = innerHTML;
     };
-
-    const parseTime = tweets => tweets.forEach(tweet => tweet.time = moment(tweet.timestamp+'Z'));
-
-
-    /** TODO:
-     * get user profile picture link scrapped from profile and show pp in tweets 
-     * */ 
     
+    const clickEventHandler = (event) => {
+        const firstPoint = usersWithMostTweetsGraph.getElementAtEvent(event)[0];
 
-    fetch('http://localhost:5000/api/allstats')
+        if (firstPoint) {
+            const label = usersWithMostTweetsGraph.data.labels[firstPoint._index];
+            const a = document.createElement('a');
+            a.href = `https://twitter.com/${label}`;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+        }
+    };
+    const hoverEventHandler = (event) => {
+        const firstPoint = usersWithMostTweetsGraph.getElementAtEvent(event)[0];
+        const canvas = document.getElementById('myChart1');
+        if (firstPoint) {
+            canvas.style.cursor = 'pointer';
+        } else {
+            canvas.style.cursor = 'default';
+        }
+    };
+    const fetchData = () => {
+        updatingIndicator.innerText = 'Updating Data... Please wait...';
+        const hashtag = decodeURIComponent(window.location.hash.substr(1));
+        document.getElementById('hashtag').innerText = hashtag;
+        document.getElementById('hashtag-ref').href = `https://twitter.com/hashtag/${hashtag}?src=hash`
+        fetch(`http://localhost:5000/api/allstats/${hashtag}`)
         .then(response => response.json())
         .then(json => {
+            updatingIndicator.innerText = '';
             drawTweetsPerHourGraph(json['tweetsPerHour']);
             showTopNTweets(json['topN']['likes'], 'likes');
             showTopNTweets(json['topN']['retweets'], 'retweets');
@@ -288,12 +316,29 @@
             hashtagStarters(json['hashtagStarters']);
             setTotalTweets(json['totalTweets']);
             setTotalTweeters(json['totalUsersTweeting']);
-            setTweetsInFirst5Min(json['tweetCountInFirst5']);
+            setMostTweetsInAMin(json['tweetCountInFirst5']);
             buildWordCloud(json['wordFreq']);
             showCommonLinks(json['commonLinks']);
+            drawTweetsPerUserGraph(json['topTweeters']);
+            setTotalRetweets(json['totalRetweets']);
+            setTotalLikes(json['totalLikes'])
         });
-    fetch('api/top_10_tweeters.json', {mode: 'no-cors'})
-        .then(response => response.json())
-        .then(json => drawTweetsPerUserGraph(json));
+    };
+    
+    const updatingIndicator = document.getElementById('updating-indicator');
+    const disclaimerDialog = document.getElementById('open-modal');
+    fetchData();
+
+    window.onhashchange = fetchData;
+    
+    const openDisclaimer = () => {
+        console.log(disclaimerDialog.classList.add('modal-window-open'));
+    };
+    const closeDisclaimer = () => {
+        console.log(disclaimerDialog.classList.remove('modal-window-open'));
+    };
+
+    document.getElementById('close-disc').onclick = closeDisclaimer;
+    document.getElementById('open-disc').onclick = openDisclaimer;
     
 })();

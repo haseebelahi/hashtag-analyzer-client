@@ -8,62 +8,115 @@
     <link rel="stylesheet" href="/styles.css">
     <title>Twitter Trend Analysis</title>
 </head>
-<body style="padding-bottom: 24px;">
-    <div class="container">
-        <h1>Hashtag Analyzer</h1>
-        <div class="row">
-            <h2 class="col-md-3">#Hashtag</h2>
-            <div class="col-md-3"></div>
-            <div class="col-md-3"></div>
-            <div class="col-md-3">
-                <div class="float-right">
-                    <i class="fa fa-file-pdf-o" style="font-size: 32px;"></i>
-                    &nbsp;&nbsp;
-                    <i class="fa fa-image" style="font-size: 32px;"></i>
+<body onhashchange="reload()" style="padding-top:24px; padding-bottom: 24px;">
+        <div id="open-modal" class="modal-window">
+            <div>
+                <a title="Close" class="modal-close" id='close-disc' tabindex="1">Close</a>
+                <h1>Disclaimer</h1>
+                <div>
+                    <ul>
+                        <li>
+                            This project is only & totally for research purposes. This application will always be free & commercial use of this application is not allowed.
+                        </li>
+                        <li>
+                            The source of this data shown here is what is publically available on Twitter. The data belongs only to Twitter and its users.
+                        </li>
+                        <li>
+                            None of the data shown here is stored permanently on any server, storage or database.
+                        </li>
+                        <li>
+                            The purpose of this project is not to trace or profile any user's social media activity rather it tries to help a social media user differentiate between actual & artificially ran Twitter trends.
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-9">
+                <h1 style="padding-bottom: 24px; text-decoration: underline;">The Curious Case of <i class="fa fa-twitter" style="color: rgb(54, 162, 235)"></i> Hashtags</h1>
+            </div>
+            <div class="col-md-3">
+                <a title="Disclaimer" class="float-right" id='open-disc' tabindex="1"><u>Disclaimer</u></a>
+            </div>
+        </div>
+        <div class="row" >
+            <div class="col-md-8">
+                <h2>
+                    Demistifying <a title="See on Twitter" id="hashtag-ref" target="_blank">#<span id='hashtag'>Hashtag</span></a> 
+                </h2>
+            </div>
+            <div class="col-md-4">
+                <!-- <div class="float-right">
+                    <i class="fa fa-file-pdf-o" style="font-size: 32px;"></i>
+                    &nbsp;&nbsp;
+                    <i class="fa fa-image" style="font-size: 32px;"></i>
+                </div> -->
+            </div>
+        </div>
         <div class="row mt-16">
+            <div class="col-md-12"><span id='updating-indicator'></span></div>
             
         </div>
         <div class="row mt-16">
             <div class="col-md-8">
                 <div class="card p-8">
                     <div class="card-body">
-                        <h5 class="card-title">Hourly Tweet Count Trend</h5>
+                        <h5 class="card-title"><i class="fa fa-hourglass-2" style="color: #33528D"></i> Hourly Tweet Count Trend</h5>
+                        <div>How the trend started & when did it really take off? When in the hashtag's life the most retweeted tweet came?</div>
                         <canvas id="myChart"></canvas>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="h-430 mh-430 stats-bar">
+                <div class="h-480 mh-480 stats-bar">
                     <div class="card flex-100">
                         <div class="card-body">
-                            <h5 class="card-title">Total Tweets</h5>
-                            <div id = 'totalTweets' class="card-text">650</div>
+                            <h5 id='totalTweets' class="card-title stat">---</h5>
+                            <div  class="card-text"><i class='fa fa-twitter' style="color: #1DA1F2;"></i> Total Tweets</div>
                         </div>
                     </div>
                     <div class="card flex-100">
                         <div class="card-body">
-                            <h5 class="card-title">First Tweet At</h5>
-                            <div id = 'firstTweetTime' class="card-text">1:30PM</div>
+                            <h5 id='totalTweeters' class="card-title stat">---</h5>
+                            <div class="card-text"><i class='fa fa-users' style="color: green"></i> Total Users Tweeting</div> 
                         </div>
                     </div>
                     <div class="card flex-100">
                         <div class="card-body">
-                            <h5 class="card-title">Total Users Tweeting</h5>
-                            <div id = 'totalTweeters' class="card-text">150</div>
+                            <h5 id="totalLikes" class="card-title stat">---</h5>
+                            <div class="card-text"><i class='fa fa-heart' style="color: red;"></i> Total Likes</i></div>
                         </div>
                     </div>
                     <div class="card flex-100">
-                        <!-- <div class="card-body">
-                            <h5 class="card-title">Average Tweeter Account Age</h5>
-                            <div class="card-text">2 months 3 days</div>
-                        </div> -->
                         <div class="card-body">
-                            <h5 class="card-title">Tweets in First 5 mins.</h5>
-                            <div id = 'tweetCountFirst5Min' class="card-text">35</div>
+                            <h5 id="totalRetweets" class="card-title stat">---</h5>
+                            <div class="card-text"><i class='fa fa-retweet'></i> Total Retweets</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-16">
+            
+            <div class="col-md-4 h-480 mh-480">
+                <div class="card p-8 mh-100-p y-scrollable">
+                    <div class="card-body" style="padding-left: 0.2rem; padding-right: 0.2rem;">
+                        <div class="hashtag-starter">
+                            <h5 class="card-title"><i class='fa fa-hashtag' style="color: #55338D"></i> Who Started It?
+                            </h5>
+                            <span id='hashtagStartersTitle'>The first # hashtag starters</span> 
+                        </div>
+                        <div id='hashtagStarters'></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card p-8">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fa fa-sort-amount-desc" style="color: rgb(54, 162, 235);"></i> Who are the Influencers?</h5>
+                        <div>Click bar or label to view user profiles who tweeted the most on this hashtag to bring it to 'trending' <i class="fa fa-rocket"></i></div>
+                        <canvas id="myChart1"></canvas>
                     </div>
                 </div>
             </div>
@@ -73,19 +126,19 @@
                 <div class="stats-bar" style="height: inherit;">
                     <div class="card flex-100">
                         <div class="card-body">
-                            <h5 class="card-title">Average Following Per Tweeter</h5>
-                            <div class="card-text">65</div>
+                            <h5 id='firstTweetTime' class="card-title stat">--:--PM</h5>
+                            <div class="card-text"><i class="fa fa-pencil" style="color: #C986C9;"></i> First Tweet for this Hashtag</div>
                         </div>
                     </div>
                     <div class="card flex-100">
                         <div class="card-body">
-                            <h5 class="card-title">Average Followers Per Tweeter</h5>
-                            <div class="card-text">213</div>
+                            <h5 id='mostTweetsInAMin' class="card-title stat">---</h5>
+                            <div class="card-text"><i class="fa fa-arrow-up" style="color:#DD9734;"></i> Most Tweets In a Minute.</div>
                         </div>
                     </div>
                     <div class="card p-8 flex-100">
                         <div class="card-body">
-                            <h5 class="card-title">Most common links in tweets</h5>
+                            <h5 class="card-title"><i class="fa fa-link"></i> Most common links in tweets</h5>
                             <div id="common_links"></div>
                         </div>
                     </div>
@@ -94,7 +147,7 @@
             <div class="col-md-8">
                 <div class="card p-8" id="word_cloud_card">
                     <div class="card-body">
-                        <h5 class="card-title">Tweets Word Cloud</h5>
+                        <h5 class="card-title"><i class="fa fa-cloud" style="color:royalblue;"></i> Tweets Word Cloud</h5>
                         <div id="word_freq_info">Click on a term to see its frequency</div>
                         <canvas class="mt-16" id="word_cloud"></canvas>
                     </div>
@@ -102,28 +155,13 @@
             </div>
         </div>
         <div class="row mt-16">
-            <div class="col-md-8">
-                <div class="card p-8">
-                    <div class="card-body">
-                        <h5 class="card-title">Top 10 Tweeters</h5>
-                        <canvas id="myChart1"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 h-430 mh-430">
-                <div class="card p-8 mh-100-p y-scrollable">
-                    <div class="card-body" style="padding-left: 0.2rem; padding-right: 0.2rem;">
-                        <h5 id = 'hashtagStartersTitle' class="card-title" style="padding-left: 1.2rem">First # hashtag starters</h5>
-                        <div id='hashtagStarters'></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row mt-16">
             <div class="col-md-4 h-530 mh-530">
                 <div class="card p-8 mh-100-p y-scrollable">
                     <div class="card-body" style="padding-left: 0.2rem; padding-right: 0.2rem;">
-                        <h5 id='topbylikestitle' class="card-title" style="padding-left: 1.2rem">Top # Most Liked Tweets</h5>
+                        <h5 class="card-title" >
+                            <i class='fa fa-heart' style="color: red;"></i>
+                            <span id='topbylikestitle'>Top # Most Liked Tweets</span>
+                        </h5>
                         <div id='topbylikes'></div>
                     </div>
                 </div>
@@ -131,7 +169,10 @@
             <div class="col-md-4 h-530 mh-530">
                 <div class="card p-8 mh-100-p y-scrollable">
                     <div class="card-body" style="padding-left: 0.2rem; padding-right: 0.2rem;">
-                        <h5 id = 'topbyretweetstitle' class="card-title" style="padding-left: 1.2rem">Top # Most Retweeted Tweets</h5>
+                        <h5 class="card-title">
+                            <i class="fa fa-retweet"></i>
+                            <span id = 'topbyretweetstitle'>Top # Most Retweeted Tweets</span>
+                        </h5>
                         <div id='topbyretweets'></div>
                     </div>
                 </div>
@@ -139,7 +180,10 @@
             <div class="col-md-4 h-530 mh-530">
                 <div class="card p-8 mh-100-p y-scrollable">
                     <div class="card-body" style="padding-left: 0.2rem; padding-right: 0.2rem;">
-                        <h5 id = 'topbytimetitle' class="card-title" style="padding-left: 1.2rem"># Earliest Tweets</h5>
+                        <h5 class="card-title">
+                            <i class="fa fa-clock-o" style="color: #F5854D;"></i>
+                            <span id = 'topbytimetitle'># Earliest Tweets</span>
+                        </h5>
                         <div id='topbytime'></div>
                     </div>
                 </div>
