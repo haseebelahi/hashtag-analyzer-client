@@ -6,41 +6,67 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="/styles.css">
+    <link id='dark-mode-style' rel="stylesheet" href="#" type="text/css">
     <title>Twitter Trend Analysis</title>
 </head>
 <body onhashchange="reload()" style="padding-top:24px; padding-bottom: 24px;">
-        <div id="open-modal" class="modal-window">
+    <div id="open-modal" class="modal-window">
+        <div>
+            <a title="Close" class="modal-close" id='close-disc' tabindex="1">Close</a>
+            <h1>Disclaimer</h1>
             <div>
-                <a title="Close" class="modal-close" id='close-disc' tabindex="1">Close</a>
-                <h1>Disclaimer</h1>
-                <div>
-                    <ul>
-                        <li>
-                            This project is only & totally for research purposes. This application will always be free & commercial use of this application is not allowed.
-                        </li>
-                        <li>
-                            The source of this data shown here is what is publically available on Twitter. The data belongs only to Twitter and its users.
-                        </li>
-                        <li>
-                            None of the data shown here is stored permanently on any server, storage or database.
-                        </li>
-                        <li>
-                            The purpose of this project is not to trace or profile any user's social media activity rather it tries to help a social media user differentiate between actual & artificially ran Twitter trends.
-                        </li>
-                    </ul>
-                </div>
+                <ul>
+                    <li>
+                        This project is only & totally for research purposes. This application will always be free & commercial use of this application is not allowed.
+                    </li>
+                    <li>
+                        The source of this data shown here is what is publically available on Twitter. The data belongs only to Twitter and its users.
+                    </li>
+                    <li>
+                        None of the data shown here is stored permanently on any server, storage or database.
+                    </li>
+                    <li>
+                        The purpose of this project is not to trace or profile any user's social media activity rather it tries to help a social media user differentiate between actual & artificially ran Twitter trends.
+                    </li>
+                </ul>
             </div>
         </div>
+    </div>
     <div class="container">
         <div class="row">
             <div class="col-md-9">
                 <h1 style="padding-bottom: 24px; text-decoration: underline;">The Curious Case of <i class="fa fa-twitter" style="color: rgb(54, 162, 235)"></i> Hashtags</h1>
             </div>
             <div class="col-md-3">
-                <a title="Disclaimer" class="float-right" id='open-disc' tabindex="1"><u>Disclaimer</u></a>
+                <div class="float-right row">
+                    <input id='dark-mode-switch' class="mt-6" style="margin-right: 0.25rem; display: none;" type="checkbox" tabindex="2"/>
+                    <p style="display: none; margin-right: 1.5rem;">Dark Mode</p>
+                    <a title="Disclaimer" id='open-disc' tabindex="1"><u>Disclaimer</u></a>
+                </div>
             </div>
         </div>
-        <div class="row" >
+        <div class="row info">
+            <div class="col-md-12">
+                <h3>Explore a Hashtag</h3>
+                <p>Click on a hashtag to explore & visualize the lifetime of this hashtag and how it got to Twitter's <b>'Trends'</b> tab!</p>
+                <div id="available-hashtags"></div>
+            </div>
+        </div>
+        <div class="row info">
+            <div class="col-md-12">
+                <p>Twitter's <strong>"Trending"</strong> list is supposed to represent <em>"what's hot"</em> on social media. Twitter trends show you what people are talking about & discussing during the day in your nearby locations.</p>
+                <p class=mt-16> In the recent past the <b>'Trends'</b> list has been taken over by what we can call <em>'Trends War'</em>. Be it brands trying to capture public attention, organizations running awareness campaings or political parties trying to throw dirt on each other, the <b>Twitter Trends List</b> is where the ultimate showdown is always happening!</p>
+                <p class="mt-16"> <b>'Social Media Influencers'</b>, <b>'Bloggers'</b> and <b>'Social Media Activists'</b> are some of the titles these people give themselves who have made themselves available to <em>run</em> twitter trends for a certain fee. Political parties have gone one step ahead & created whole teams of activists all working remotely but in harmony to keep their party's <em>trends</em> on top.</p> Recently, <b>Dawn</b> also published an excellent investigative <a href='https://www.dawn.com/news/1518967'>article</a> breaking down these trend making factories.
+
+                <p class="mt-16">The purpose of this tool is to let a social media user explore how a certain hashtag got to the <b>'Trends'</b> tab, was it a coordinated effort by a group of people or was it something that people were naturally talking about and who are the people behind all this?</p>
+            </div>
+        </div>
+        <div class="row trend">
+            <div class="col-md-12">
+                <h4><a href="/"><i class="fa fa-angle-left"></i> All Hashtags </a></h4>
+            </div>
+        </div>
+        <div class="row trend hidden mt-16">
             <div class="col-md-8">
                 <h2>
                     Demistifying <a title="See on Twitter" id="hashtag-ref" target="_blank">#<span id='hashtag'>Hashtag</span></a> 
@@ -56,9 +82,8 @@
         </div>
         <div class="row mt-16">
             <div class="col-md-12"><span id='updating-indicator'></span></div>
-            
         </div>
-        <div class="row mt-16">
+        <div class="row mt-16 trend hidden">
             <div class="col-md-8">
                 <div class="card p-8">
                     <div class="card-body">
@@ -97,7 +122,7 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-16">
+        <div class="row mt-16 trend hidden">
             
             <div class="col-md-4 h-480 mh-480">
                 <div class="card p-8 mh-100-p y-scrollable">
@@ -121,7 +146,7 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-16">
+        <div class="row mt-16 trend hidden">
             <div class="col-md-4" id="word_cloud_adj_card">
                 <div class="stats-bar" style="height: inherit;">
                     <div class="card flex-100">
@@ -154,7 +179,7 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-16">
+        <div class="row mt-16 trend hidden">
             <div class="col-md-4 h-530 mh-530">
                 <div class="card p-8 mh-100-p y-scrollable">
                     <div class="card-body" style="padding-left: 0.2rem; padding-right: 0.2rem;">

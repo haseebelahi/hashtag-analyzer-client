@@ -110,6 +110,9 @@ p {
 .stat {
     font-weight: bold;
 }
+.hidden {
+    display: none;
+}
 .container {
     display: grid;
     justify-content: center;
@@ -174,4 +177,8 @@ p {
 }
 a {
     cursor: pointer;
+}
+
+.mt-6 {
+    margin-top: 5px;
 }

@@ -8,7 +8,9 @@
 
 	class Utils {
 		
-		constructor() {}
+		constructor(isDarkModeOn=false) {
+			this.isDarkModeOn = isDarkModeOn;
+		}
 		random_rgb() {
 			var o = Math.round, r = Math.random, s = 255;
 			// return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ')';
@@ -16,8 +18,15 @@
 		}
 		randomColor() {
 			const whiteRGB = [255, 255, 255];
+			const blackRBG = [0, 0, 0];
+			let compareToRGB;
+			if(this.isDarkModeOn) {
+				compareToRGB = blackRBG;
+			} else {
+				compareToRGB = whiteRGB;
+			}
 			let randomRGB = this.random_rgb();
-			while(this.contrast(whiteRGB, randomRGB) < 3) {
+			while(this.contrast(compareToRGB, randomRGB) < 3) {
 				randomRGB = this.random_rgb();
 			}
 			return `rgba(${randomRGB[0]}, ${randomRGB[1]}, ${randomRGB[2]}, 0.8)`;

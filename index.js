@@ -13,7 +13,7 @@
         let data = [];
         labels = tweetsPerUser.map(item => `@${item.screen_name}`);
         data = tweetsPerUser.map(item => item.num_of_tweets);
-        const utils = new Utils();
+        const utils = new Utils(isDarkModeOn);
         const colors = utils.getColors(data.length);
         const config = {
             type: 'bar',
@@ -36,7 +36,25 @@
                 },
                 title: {
                     display: 'true',
-                    text: 'Top 10 Tweeters'
+                    text: 'Top 10 Tweeters',
+                },
+                scales: {
+                    xAxes: [{
+                        gridLines: {
+                            color: isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)'
+                        },
+                        ticks: {
+                            fontColor: isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)'
+                        }
+                    }],
+                    yAxes: [{
+                        gridLines: {
+                            color: isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)'
+                        },
+                        ticks: {
+                            fontColor: isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)'
+                        }
+                    }],
                 },
                 onClick: clickEventHandler,
                 onHover: hoverEventHandler
@@ -55,7 +73,7 @@
         const highestLikesData = tweetsPerHourGraphData['highestLikesData'];
         const highestRetweetsData = tweetsPerHourGraphData['highestRetweetsData'];
         const mostTweetsInAMinData = tweetsPerHourGraphData['mostTweetsInAMinData'];
-        const utils = new Utils();
+        const utils = new Utils(isDarkModeOn);
         const colorPair = utils.getColorPair();
         let config = {
             type: 'line',
@@ -125,6 +143,12 @@
                         scaleLabel: {
                             display: true,
                             labelString: 'Hour of the day'
+                        },
+                        gridLines: {
+                            color: isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)'
+                        },
+                        ticks: {
+                            fontColor: isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)'
                         }
                     }],
                     yAxes: [{
@@ -132,6 +156,12 @@
                         scaleLabel: {
                             display: true,
                             labelString: 'Number of Tweets'
+                        },
+                        gridLines: {
+                            color: isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)'
+                        },
+                        ticks: {
+                            fontColor: isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)'
                         }
                     }]
                 }
@@ -159,7 +189,7 @@
         maxFrequency = wordFrequency[0][1];
         minFrequency = wordFrequency[wordFrequency.length - 1][1];
         
-        const utils = new Utils();
+        const utils = new Utils(isDarkModeOn);
 
         const heighestCount = wordFrequency.slice(1)[0][1];
         let weightFactor = 0.4;
@@ -189,7 +219,8 @@
                 return size;
                 
             },
-            rotationSteps: 2
+            rotationSteps: 2,
+            backgroundColor: isDarkModeOn ? 'black' : 'white'
         });
         ctxAdjacent.style['height'] = `${ctxParent.offsetHeight}px`;
         ctxAdjacent.style['max-height'] = `${ctxParent.offsetHeight}px`;
@@ -271,12 +302,28 @@
         for(let link in commonLinks) {
             innerHTML += `
             <li>
-                <p class='text-elipsis'><a href='${link}' target='_blank'>${link}</a><p>
+                <p class='text-elipsis'><a style='max-width: 20px; display: inline-block;' href='${link}' target='_blank'>${link}</a><p>
             </li>
             `;
         }
         innerHTML += `</ol>`;
         commonLinksContainer.innerHTML = innerHTML;
+    };
+
+    const showAvailableHashtags = (availableHashtags) => {
+        const availableHashtagsContainer = document.getElementById('available-hashtags');
+        let innerHTML = `<ul>`;
+        availableHashtags.forEach(item => {
+            innerHTML += `
+            <li>
+                <p>
+                    <a href='${item['SearchTerm']}'>${item['SearchTerm']}</a> - Updated at: ${item['CreatedAt']}
+                <p>
+            </li>
+            `;
+        });
+        innerHTML += `</ul>`;
+        availableHashtagsContainer.innerHTML = innerHTML;
     };
     
     const clickEventHandler = (event) => {
@@ -300,12 +347,25 @@
             canvas.style.cursor = 'default';
         }
     };
-    const fetchData = () => {
+
+    const apiEndPoint = 'https://6qmf0n6wae.execute-api.us-east-2.amazonaws.com/dev/api';
+
+    const fetchAllHashtags = () => {
+        showInfo();
+        fetch(`${apiEndPoint}/allhashtags/${moment().utcOffset()}`)
+        .then(response => response.json())
+        .then(json => {
+            console.log(json);
+            showAvailableHashtags(json);
+        });
+    };
+
+    const fetchHashtagStats = (hashtag) => {
+        showStats();
         updatingIndicator.innerText = 'Updating Data... Please wait...';
-        const hashtag = decodeURIComponent(window.location.hash.substr(1));
         document.getElementById('hashtag').innerText = hashtag;
         document.getElementById('hashtag-ref').href = `https://twitter.com/hashtag/${hashtag}?src=hash`
-        fetch(`http://localhost:5000/api/allstats/${hashtag}`)
+        fetch(`${apiEndPoint}/allstats/${moment().utcOffset()}/${hashtag}`)
         .then(response => response.json())
         .then(json => {
             updatingIndicator.innerText = '';
@@ -324,21 +384,112 @@
             setTotalLikes(json['totalLikes'])
         });
     };
+
+    const fetchData = () => {
+        
+        const hashtag = decodeURIComponent(window.location.hash.substr(1));
+        if(hashtag) {
+            fetchHashtagStats(hashtag);
+        } else {
+            fetchAllHashtags();
+        }
+    };
+    
     
     const updatingIndicator = document.getElementById('updating-indicator');
     const disclaimerDialog = document.getElementById('open-modal');
+    const trendsDiv = document.getElementsByClassName('trend');
+    const infoDivs = document.getElementsByClassName('info');
+    const darkModeSwitch = document.getElementById('dark-mode-switch');
+    const darkStyleSheet = document.getElementById('dark-mode-style');
+
+    const showStats = () => {
+        const trendingDivs = [...trendsDiv];
+        trendingDivs.forEach(div => {
+            div.classList.remove('hidden');
+        });
+        const infoDivsArr = [...infoDivs];
+        infoDivsArr.forEach(div => {
+            div.classList.add('hidden');
+        });
+    }
+
+    const showInfo = () => {
+        const trendingDivs = [...trendsDiv];
+        trendingDivs.forEach(div => {
+            div.classList.add('hidden');
+        });
+        const infoDivsArr = [...infoDivs];
+        infoDivsArr.forEach(div => {
+            div.classList.remove('hidden');
+        });
+    }
+    
     fetchData();
 
     window.onhashchange = fetchData;
     
     const openDisclaimer = () => {
-        console.log(disclaimerDialog.classList.add('modal-window-open'));
+        disclaimerDialog.classList.add('modal-window-open');
     };
     const closeDisclaimer = () => {
-        console.log(disclaimerDialog.classList.remove('modal-window-open'));
+        disclaimerDialog.classList.remove('modal-window-open');
+    };
+    const toggleDarkMode = () => {
+        console.log(darkModeSwitch.checked);
+        isDarkModeOn = darkModeSwitch.checked;
+        if(darkModeSwitch.checked) {
+            darkStyleSheet.setAttribute('href', '/styles-dark.css');
+            document.cookie = 'dark-mode=on; ';
+        } else {
+            darkStyleSheet.setAttribute('href', '');
+            document.cookie = 'dark-mode=off; ';
+        }
+        if(tweetsPerHourGraph) {
+            tweetsPerHourGraph.options.scales.xAxes[0].gridLines.color = isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)';
+            tweetsPerHourGraph.options.scales.yAxes[0].gridLines.color = isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)';
+            tweetsPerHourGraph.options.scales.xAxes[0].ticks.fontColor = isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)';
+            tweetsPerHourGraph.options.scales.yAxes[0].ticks.fontColor = isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)';
+            tweetsPerHourGraph.update();
+        }
+        if(usersWithMostTweetsGraph) {
+            usersWithMostTweetsGraph.options.scales.xAxes[0].gridLines.color = isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)';
+            usersWithMostTweetsGraph.options.scales.yAxes[0].gridLines.color = isDarkModeOn ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)';
+            usersWithMostTweetsGraph.options.scales.xAxes[0].ticks.fontColor = isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)';
+            usersWithMostTweetsGraph.options.scales.yAxes[0].ticks.fontColor = isDarkModeOn ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.75)';
+            const colors = new Utils(isDarkModeOn).getColors(usersWithMostTweetsGraph.data.datasets[0].data.length);
+            usersWithMostTweetsGraph.data.datasets[0].borderColor = colors;
+            usersWithMostTweetsGraph.data.datasets[0].backgroundColor = colors;
+            usersWithMostTweetsGraph.update();
+        }
     };
 
+    const getCookie = (cookieName) =>  {
+        const name = cookieName + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    let isDarkModeOn = false;
+
+    darkModeSwitch.onchange = toggleDarkMode;
     document.getElementById('close-disc').onclick = closeDisclaimer;
     document.getElementById('open-disc').onclick = openDisclaimer;
+    
+    const darkMode = getCookie('dark-mode');
+    if(darkMode == 'on') {
+        darkModeSwitch.checked = true;
+        toggleDarkMode();
+    }
     
 })();
