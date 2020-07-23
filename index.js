@@ -240,7 +240,7 @@
                 <div class='card-body tweet-card'>
                     <div class='card-title'>
                         <a title='${tweet.username}' href='https://twitter.com/${tweet.screen_name}' target = '_blank'>
-                        <img class='avatar-img' src='${tweet.avatar_img}' alt='profile avatar'>
+                        <img class='avatar-img' src='${tweet.avatar_img}' alt='profile avatar' onerror="imageError(this)">
                         @${tweet.username}
                         </a>
                     </div>
@@ -262,7 +262,7 @@
             innerHTML += `
             <li>
                 <a title='${user.screen_name}' href='https://twitter.com/${user.screen_name}' target = '_blank'>
-                    <img class='avatar-img' src='${user.avatar_img}' alt='profile avatar'>
+                    <img class='avatar-img' src='${user.avatar_img}' alt='profile avatar' onerror="imageError(this)">
                     @${user.username}
                 </a> at ${user.tweet_time}
             </li>
