@@ -311,6 +311,7 @@
     };
 
     const showAvailableHashtags = (availableHashtags) => {
+        // hideLoader();
         const availableHashtagsContainer = document.getElementById('available-hashtags');
         let innerHTML = `<ul>`;
         availableHashtags.forEach(item => {
@@ -324,6 +325,11 @@
         });
         innerHTML += `</ul>`;
         availableHashtagsContainer.innerHTML = innerHTML;
+    };
+
+    const hideLoader = () => {
+        const loader = document.getElementById('loader');
+        loader.style.display = 'none';
     };
     
     const clickEventHandler = (event) => {
@@ -480,7 +486,7 @@
         return "";
     }
 
-    let isDarkModeOn = false;
+    let isDarkModeOn = getCookie('dark-mode')=='on';
 
     darkModeSwitch.onchange = toggleDarkMode;
     document.getElementById('close-disc').onclick = closeDisclaimer;

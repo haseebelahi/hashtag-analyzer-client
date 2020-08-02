@@ -10,6 +10,9 @@ body {
 .p-8 {
     padding: 8px;
 }
+.pb-16 {
+    padding-bottom: 16px;
+}
 .y-scrollable{
     overflow-y: scroll;
 }
@@ -181,4 +184,9 @@ a {
 
 .mt-7 {
     margin-top: 7px;
+}
+
+.caption {
+    font-size: 14px;
+    text-align: right;
 }
