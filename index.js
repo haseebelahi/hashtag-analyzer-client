@@ -280,9 +280,9 @@
     const setTweetPercentageByTop50 = (totalTweets, top50Tweeters) => {
         let totalTweetsByTop50 = 0;
         top50Tweeters.forEach(x => totalTweetsByTop50 += x['num_of_tweets'])
-        const percentageByTop50 = (totalTweets / totalTweetsByTop50) * 100;
+        const percentageByTop50 = (totalTweetsByTop50 / totalTweets) * 100;
         console.log(percentageByTop50);
-        document.getElementById('percentageFromTop50').innerText = `${percentageByTop50}%`;
+        document.getElementById('percentageFromTop50').innerText = `${percentageByTop50.toFixed(2)}%`;
     };
 
     const setFirstTweetTime = (time) => {
