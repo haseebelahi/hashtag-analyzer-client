@@ -363,7 +363,7 @@
         }
     };
 
-    const apiEndPoint = 'http://localhost:3200/api';
+    const apiEndPoint = 'https://6qmf0n6wae.execute-api.us-east-2.amazonaws.com/dev/api';
 
     const fetchAllHashtags = () => {
         showInfo();
