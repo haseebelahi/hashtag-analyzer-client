@@ -11,6 +11,7 @@
     const drawTweetsPerUserGraph = (tweetsPerUser) => {
         let labels = [];
         let data = [];
+        tweetsPerUser = tweetsPerUser.slice(0, 10)
         labels = tweetsPerUser.map(item => `@${item.screen_name}`);
         data = tweetsPerUser.map(item => item.num_of_tweets);
         const utils = new Utils(isDarkModeOn);
@@ -276,6 +277,14 @@
         document.getElementById('totalTweets').innerText = new Utils().numberWithCommas(totalTweets);
     };
 
+    const setTweetPercentageByTop50 = (totalTweets, top50Tweeters) => {
+        let totalTweetsByTop50 = 0;
+        top50Tweeters.forEach(x => totalTweetsByTop50 += x['num_of_tweets'])
+        const percentageByTop50 = (totalTweets / totalTweetsByTop50) * 100;
+        console.log(percentageByTop50);
+        document.getElementById('percentageFromTop50').innerText = `${percentageByTop50}%`;
+    };
+
     const setFirstTweetTime = (time) => {
         document.getElementById('firstTweetTime').innerText = time;
     };
@@ -354,7 +363,7 @@
         }
     };
 
-    const apiEndPoint = 'https://6qmf0n6wae.execute-api.us-east-2.amazonaws.com/dev/api';
+    const apiEndPoint = 'http://localhost:3200/api';
 
     const fetchAllHashtags = () => {
         showInfo();
@@ -381,13 +390,14 @@
             showTopNTweets(json['topN']['time'], 'time');
             hashtagStarters(json['hashtagStarters']);
             setTotalTweets(json['totalTweets']);
+            setTweetPercentageByTop50(json['totalTweets'], json['topTweeters']);
             setTotalTweeters(json['totalUsersTweeting']);
             setMostTweetsInAMin(json['tweetCountInFirst5']);
             buildWordCloud(json['wordFreq']);
             showCommonLinks(json['commonLinks']);
             drawTweetsPerUserGraph(json['topTweeters']);
             setTotalRetweets(json['totalRetweets']);
-            setTotalLikes(json['totalLikes'])
+            // setTotalLikes(json['totalLikes'])
         });
     };
 
