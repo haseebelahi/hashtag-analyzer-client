@@ -83,8 +83,8 @@ ul > li {
     overflow: hidden;
 }
 
-.fa {
-    cursor: pointer;
+.pointer {
+    cursor: pointer !important;
 }
 .tweet-card {
     padding: 0.5rem 0.75rem 0.5rem 0.75rem;
@@ -190,3 +190,18 @@ a {
     font-size: 14px;
     text-align: right;
 }
+
+.info-hover { 
+    display: none; 
+    position: absolute;
+    top: 10;
+    left: 0;
+    z-index: 99;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    background: #fff;
+    width: 200px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 10px;
+}
+a:hover + div { display: block; }
